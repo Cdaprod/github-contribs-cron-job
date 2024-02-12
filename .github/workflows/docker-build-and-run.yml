@@ -1,0 +1,30 @@
+name: Docker Build and Run
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build_and_run:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v2
+
+    - name: Build the Docker image
+      run: docker build --build-arg GITHUB_API_KEY=${{ secrets.GH_TOKEN }} -t github-contributions-summarizer .
+
+    - name: Run Docker container
+      run: docker run --name github-contributions-summarizer github-contributions-summarizer
+
+    - name: Capture output
+      run: docker logs myapp_container
+
+    # Optional: Clean up after run
+    - name: Docker Cleanup
+      run: |
+        docker rm myapp_container
+        docker image prune -f
