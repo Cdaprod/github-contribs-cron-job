@@ -17,4 +17,4 @@ ARG GITHUB_API_KEY
 ENV GITHUB_API_KEY=${GITHUB_API_KEY}
 
 # Run python script when the container launches
-CMD ["python", "./github_contributions.py"]
+CMD ["python", "./main.py"]
