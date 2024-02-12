@@ -1,0 +1,34 @@
+name: Docker Build and Run Workflow
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repo
+      uses: actions/checkout@v2
+      
+    - name: Build Docker Image
+      run: |
+        docker build . --file Dockerfile --tag github-contributions-summarizer --build-arg GITHUB_API_KEY=${{ secrets.GITHUB_API_KEY }}
+      
+    - name: Run Container
+      run: |
+        docker run --name myapp -d github-contributions-summarizer
+      
+    - name: Get Container Output
+      run: |
+        docker logs myapp
+      
+    # Optional: Clean up Docker artifacts
+    - name: Cleanup Docker Artifacts
+      run: |
+        docker rm -f myapp
+        docker rmi github-contributions-summarizer
+        docker image prune -af --filter label=stage=builder
