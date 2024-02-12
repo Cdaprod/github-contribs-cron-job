@@ -1,8 +1,3 @@
-Here's the full `main.py` content you've provided earlier:
-
-```python
-# main.py
-
 import sys
 import json
 from pydantic import BaseModel, Field
