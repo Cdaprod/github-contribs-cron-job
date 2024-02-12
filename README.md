@@ -1,203 +1,81 @@
-# Custom AI Job 
-## Fetch Recent GitHub Contributions
+# Project Title: AI-Powered Microservices for Data Processing and Summarization
 
-README.md
+This repository hosts a suite of microservices designed to leverage AI for various tasks, including summarizing GitHub contributions and processing documents stored in MinIO, subsequently indexing them into Weaviate. It utilizes Docker and Docker Compose for easy deployment and management of the services.
 
-Create a README.md file to explain how to use your repository, including how to build and run the Docker container. Here’s a template:
+## Services Overview
 
-# GitHub Contributions Summarizer
+### GitHub Contributions Summarizer
 
-This project fetches your recent public contributions from GitHub and generates a summarized listing using the Ollama library.
+- **Purpose:** Summarizes recent GitHub contributions for a specified user.
+- **Technology:** Python, Docker.
 
-## Status Badge
+### LangChain-Weaviate-MinIO Service
 
+- **Purpose:** Processes documents from MinIO storage, utilizing LangChain for NLP tasks, and indexes processed data into Weaviate.
+- **Technology:** Python, FastAPI, Docker, MinIO, Weaviate.
 
+## Project Structure
+
+```
+/top-level-repo
+    /github-contributions-summarizer
+        Dockerfile
+        main.py
+        requirements.txt
+    /langchain-weaviate-minio-service
+        Dockerfile
+        main.py
+        requirements.txt
+    docker-compose.yml
+    README.md
+```
 
 ## Getting Started
 
 ### Prerequisites
 
 - Docker
-- GitHub account
+- Docker Compose
 
-### Installation
+### Setup and Deployment
 
-1. Clone the repository:
+1. **Clone the Repository:**
 
-`git clone https://github.com/Cdaprod/github-contribs-cron-job.git`
+```bash
+git clone <repository-url>
+cd <repository-name>
+```
 
-2. Navigate to the project directory:
+2. **Build and Run with Docker Compose:**
 
-`cd github-contribs-cron-job`
+```bash
+docker-compose up --build
+```
 
-3. Build the Docker image:
+This command builds the Docker images for each service and starts the containers as defined in `docker-compose.yml`.
 
-`docker build -t github-contributions-summarizer .`
+## Usage
 
-Using in Docker:
+### GitHub Contributions Summarizer
 
-When running your Docker container, pass the GitHub API key and username as environment variables using the -e option:
+Access the summarizer service at: `http://localhost:<port>/path-to-summarizer`
 
-`docker run -e GITHUB_API_KEY=your_github_api_token -e GITHUB_USERNAME=your_github_username github-contributions-summarizer`
+### LangChain-Weaviate-MinIO Service
 
-Replace my_docker_image with the actual name/tag of your Docker image. This command ensures your script within the Docker container has access to the necessary environment variables without hardcoding them into your image or script.
+The document processing service can be interacted with through its FastAPI endpoints, accessible at: `http://localhost:<port>/docs`
 
-### Configuration and Environment Variable Methods
+## Configuration
 
-- Set your GitHub API key and username in the `.env` file.
-- Set your GitHub API key and username in the Github Secrets UI.
+Configure environment variables for each service in `docker-compose.yml`. For example, set `GITHUB_API_KEY` for the GitHub Contributions Summarizer and MinIO/Weaviate credentials for the LangChain-Weaviate-MinIO Service.
+
+## Contributing
+
+Contributions are welcome! Please refer to the contributing guidelines for details on how to contribute to this project.
 
 ## License
 
-This project is licensed under the MIT License - David Cannan Cdaprod 2024
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
 
----
-
-# GRAVEYARD (to be removed)
-
-# Using `ollama`
-
-Based on the provided Ollama Python library README snippet, you can utilize this library to create a cron job that fetches your recent public contributions from GitHub and generates a summarized listing. Let's revise the Python script to use the Ollama library instead of OpenAI directly. This approach simplifies interacting with the Llama2 model for generating summaries. Here's how you can adjust the script:
-
-### Step 1: Install the Ollama Library
-
-First, ensure you have installed the Ollama library:
-
-```bash
-pip install ollama
-```
-
-### Step 2: Update the Python Script
-
-Modify the `github_contributions.py` script to use the Ollama library. Here's an updated version of the script:
-
-```python
-import requests
-import ollama
-
-# Configure your GitHub API key and username
-GITHUB_API_KEY = 'your_github_api_key'
-GITHUB_USERNAME = 'your_github_username'
-
-def get_github_contributions(username):
-    """Fetch recent public contributions of a user from GitHub."""
-    url = f'https://api.github.com/users/{username}/events/public'
-    headers = {'Authorization': f'token {GITHUB_API_KEY}'}
-    response = requests.get(url, headers=headers)
-    events = response.json()
-    
-    contributions = []
-    for event in events:
-        if event['type'] == 'PushEvent':
-            repo_name = event['repo']['name']
-            commit_msgs = [commit['message'] for commit in event['payload']['commits']]
-            contributions.append({'repo_name': repo_name, 'commit_msgs': commit_msgs})
-    
-    return contributions
-
-def summarize_contributions(contributions):
-    """Use the Ollama library to generate a summarized listing of contributions."""
-    contributions_text = '\n'.join([f"Repository {c['repo_name']} had commits: {'; '.join(c['commit_msgs'])}" for c in contributions])
-    response = ollama.chat(
-        model='llama2',
-        messages=[{'role': 'user', 'content': f"Summarize these GitHub contributions: {contributions_text}"}]
-    )
-    return response['message']['content']
-
-def main():
-    contributions = get_github_contributions(GITHUB_USERNAME)
-    summary = summarize_contributions(contributions)
-    print(summary)
-
-if __name__ == '__main__':
-    main()
-```
-
-### Step 3: Set Up the Cron Job
-
-The setup for the cron job remains the same as previously described. Use the `crontab -e` command to schedule your script to run once a day at your preferred time.
-
-This script now leverages the Ollama library to process the natural language generation part, simplifying the interaction with the model. Ensure you replace `your_github_api_key` and `your_github_username` with your actual GitHub API key and GitHub username.
-
-# Using `openai`
-
-To achieve your goal, you will need to create a Python script that uses the OpenAI (specifically, Ollama with Llama2 model) API Python SDK for natural language processing and the GitHub API to fetch your recent public contributions. Then, you will set up a cron job to run this script once a day. Here's a step-by-step guide to set this up:
-
-### Step 1: Install Required Libraries
-
-First, ensure you have Python installed on your system. Then, install the necessary libraries by running:
-
-```bash
-pip install openai requests
-```
-
-### Step 2: Write the Python Script
-
-Create a Python script named `github_contributions.py` with the following content. This script will use the GitHub API to fetch your latest public contributions and then use the Ollama API to generate a summarized response.
-
-```python
-import openai
-import requests
-
-# Configure your OpenAI and GitHub API keys
-OPENAI_API_KEY = 'your_openai_api_key'
-GITHUB_API_KEY = 'your_github_api_key'
-GITHUB_USERNAME = 'your_github_username'
-
-def get_github_contributions(username):
-    """Fetch recent public contributions of a user from GitHub."""
-    url = f'https://api.github.com/users/{username}/events/public'
-    headers = {'Authorization': f'token {GITHUB_API_KEY}'}
-    response = requests.get(url, headers=headers)
-    events = response.json()
-    
-    contributions = []
-    for event in events:
-        if event['type'] == 'PushEvent':
-            repo_name = event['repo']['name']
-            commit_msgs = [commit['message'] for commit in event['payload']['commits']]
-            contributions.append({'repo_name': repo_name, 'commit_msgs': commit_msgs})
-    
-    return contributions
-
-def summarize_contributions(contributions):
-    """Use the Ollama API to generate a summarized listing of contributions."""
-    openai.api_key = OPENAI_API_KEY
-    contributions_text = '\n'.join([f"Repository {c['repo_name']} had commits: {'; '.join(c['commit_msgs'])}" for c in contributions])
-    response = openai.ChatCompletion.create(
-        model="ollama-llama2",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": f"Summarize these GitHub contributions: {contributions_text}"},
-        ]
-    )
-    return response.choices[0].message['content']
-
-def main():
-    contributions = get_github_contributions(GITHUB_USERNAME)
-    summary = summarize_contributions(contributions)
-    print(summary)
-
-if __name__ == '__main__':
-    main()
-```
-
-### Step 3: Set Up the Cron Job
-
-To schedule this script to run once a day, you can use cron on a Unix-based system (Linux/macOS). Here's how:
-
-1. Open your terminal.
-2. Type `crontab -e` to edit your cron jobs.
-3. Add the following line to run the script every day at a specific time (e.g., 8 AM):
-
-```cron
-0 8 * * * /usr/bin/python3 /path/to/your/script/github_contributions.py
-```
-
-Replace `/path/to/your/script/github_contributions.py` with the actual path to your Python script and `/usr/bin/python3` with the path to your Python interpreter if it's different.
-
-Make sure to replace placeholder values like `your_openai_api_key`, `your_github_api_key`, and `your_github_username` with your actual OpenAI API key, GitHub API key, and GitHub username.
-
-This setup will fetch your recent contributions from GitHub daily and use the Ollama model to summarize them in a natural, conversational way.
+Please replace `<repository-url>`, `<repository-name>`, and `<port>` with the actual URL of your repository, the name of your repository, and the ports you've configured for accessing the services. This README provides a basic outline; you might want to customize it further to fit your project's specifics, such as adding detailed usage examples, contributing guidelines, and any other relevant information.
